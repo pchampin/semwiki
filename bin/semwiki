@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+# -*- coding=utf-8 -*-
+
+"""
+This is a standalone version of an HTTP-based SemWiki.
+"""
+from os.path import abspath, dirname, join
+from sys import path
+
+SOURCE_DIR = dirname(dirname(abspath(__file__)))
+LIB_DIR = join(SOURCE_DIR, "lib")
+path.append(LIB_DIR)
+
+from semwiki.standalone import main
+
+if __name__ == "__main__":
+    main()

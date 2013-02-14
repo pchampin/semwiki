@@ -17,6 +17,19 @@ http://github.com/ktbs/ktbs .
 
 ``rdfrest`` and all its dependencies must be in the ``PYTHONPATH``.
 
+If you are using `virtualenv`_, an easy way to get up and running is to run::
+
+    $ virtualenv semwikienv
+    $ cd semwikienv
+    $ source bin/activate
+    $ pip install ktbs
+    $ git clone git://github.com/pchampin/semwiki.git
+    $ cd semwiki/
+    $ bin/semwiki
+
+.. _virtualenv: http://pypi.python.org/pypi/virtualenv 
+
+
 Using
 -----
 
@@ -28,9 +41,9 @@ Wiki syntax
 
 The syntax currently supported by semwiki is very minimal:
 
-* text within stars ``*`` is emphasized
+* text between stars ``*`` is emphasized
 * four dashes ``-`` or more are rendered as an horizontal rule
 * a word starting with a colon ``:`` is an internal link
 * a URI between angle brackets ``<>`` is an external link
-* two links separated by an arrow ``->`` is a semantic link
+* two links separated by an arrow ``->`` form a *semantic* link
   (of the form predicate -> object)

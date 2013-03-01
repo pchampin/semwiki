@@ -19,10 +19,16 @@ http://github.com/ktbs/ktbs .
 
 If you are using `virtualenv`_, an easy way to get up and running is to run::
 
+    $ # create virtualenv
     $ virtualenv semwikienv
     $ cd semwikienv
+    $ # install dependencies
     $ source bin/activate
-    $ pip install ktbs
+    $ git clone git://github.com/ktbs/ktbs.git
+    $ pip install -r requirements.txt
+    $ python setup.py install
+    $ cd ..
+    $ # all dependencies are here, install and run semwiki
     $ git clone git://github.com/pchampin/semwiki.git
     $ cd semwiki/
     $ bin/semwiki

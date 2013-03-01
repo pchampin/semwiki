@@ -2,10 +2,12 @@
 Serializers and Parsers for SemWiki
 """
 
-from rdflib import Graph, Literal, URIRef
+from rdflib import Graph, Literal, RDF, URIRef
 from rdfrest.parsers import register_parser, ParseError, wrap_exceptions
 from rdfrest.serializers import iter_serializers, register_serializer, \
-    SerializeError, _HTML_STYLE, _HTML_SCRIPT, _HTML_FOOTER
+    SerializeError
+from rdfrest.serializers_html import serialize_htmlized_turtle, \
+    generate_ajax_client_js
 
 from .format import wikitext_to_html
 from .namespace import SW
@@ -37,49 +39,29 @@ def parse_wikitext(content, base_uri=None, encoding="utf-8", graph=None):
 
 ## HTML
 
+def render_wikitext(graph, resource, bindings, ctypes):
+    """I render the wikitext of resource."""
+    wikitext = graph.value(URIRef(resource.uri), SW.wikitext)    
+    return "<pre>\n%s</pre>\n" % wikitext_to_html(wikitext, resource)
+
+def generate_semwiki_js(graph, resource, bindings, ctypes):
+    """I patch default JS to make text/plain the default mediatype.
+    """
+    ret = generate_ajax_client_js(graph, resource, bindings, ctypes)
+    ret = ret.replace('.value = "text/turtle";', '.value = "text/plain";')
+    print "===", ret, "==="
+    return ret
+
 @register_serializer("text/html", "html", 80, SW.Topic)
 @wrap_exceptions(SerializeError)
-def serialize_html(graph, resource, _bindings=None):
+def serialize_html(graph, resource, bindings=None):
     """Wiki rendering"""
-    uri = resource.uri
-    ret = "<h1>"
-    crumbs = uri.split("/")
-    crumbs[:3] = [ "/".join(crumbs[:3]) ]
-    for i in xrange(len(crumbs)-1):
-        link = "/".join(crumbs[:i+1]) + "/"
-        ret += u'<a href="%s">%s</a>' % (link, crumbs[i] + "/",)
-    ret += u'<a href="%s">%s</a></h1>\n' % (uri, crumbs[-1])
-
-    ret += "<div class='formats'>Available formats:\n"
-    seen_ext = set()
-    for _, _, ext in iter_serializers(SW.Topic):
-        if ext is not None  and  ext not in seen_ext:
-            ret += u'<a href="%s.%s">%s</a>\n' % (uri, ext, ext)
-            seen_ext.add(ext)
-    ret += "</div>\n"
-
-    wikitext = graph.value(URIRef(uri), SW.wikitext)
-    
-    ret += "<pre>\n%s</pre>\n" % wikitext_to_html(wikitext, resource)
-
-    page = u"""<html>
-    <head>
-    <title>%(uri)s</title>
-    <style text="text/css">%(style)s
-      pre { font-size: 120%% }
-    </style>
-    <script text="text/javascript">%(script)s</script>
-    </head>
-    <body onload="init_page()">
-    %(body)s
-    %(footer)s
-    </body>\n</html>""" % {
-        "uri": uri,
-        "style": _HTML_STYLE,
-        "script": _HTML_SCRIPT,
-        "body": ret,
-        "footer": _HTML_FOOTER,
-    }
-
-    return [page.encode("utf-8")]
-
+    ctypes = {}
+    rdf_types = list(graph.objects(resource.uri, RDF.type)) + [None]
+    for typ in rdf_types:
+        for _, ctype, ext in iter_serializers(typ):
+            if ext is not None  and  ctype not in ctypes:
+                ctypes[ctype] = ext
+    return serialize_htmlized_turtle(graph, resource, bindings or {}, ctypes,
+                                     generate_script=generate_semwiki_js,
+                                     generate_body=render_wikitext)

@@ -42,6 +42,8 @@ def parse_wikitext(content, base_uri=None, encoding="utf-8", graph=None):
 def generate_semwiki_js(graph, resource, bindings, ctypes, _cache=[]):
     """I patch default JS to make text/plain the default mediatype.
     """
+    # dangerous default value [] #pylint: disable=W0102
+    #
     if not _cache:
         _cache.append(
             generate_ajax_client_js(graph, resource, bindings, ctypes)
@@ -60,7 +62,7 @@ def generate_header(graph, resource, bindings, ctypes):
             + generate_formats(graph, resource, bindings, ctypes)
             )
 
-def render_wikitext(graph, resource, bindings, ctypes):
+def render_wikitext(graph, resource, _bindings, _ctypes):
     """I render the wikitext of resource."""
     wikitext = graph.value(URIRef(resource.uri), SW.wikitext)    
     return "<pre>\n%s</pre>\n" % wikitext_to_html(wikitext, resource)
